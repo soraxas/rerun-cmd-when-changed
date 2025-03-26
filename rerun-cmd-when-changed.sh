@@ -20,7 +20,7 @@ Usage: $(basename "$0") [OPTIONS]
 Options:
   -h, --help              Display this help message and exit.
   -f, --file FILE         Watch a specific file.
-  -d, --watch-directory DIR  Watch a specific directory.
+  -r, --watch-directory DIR  Watch a specific directory.
 
 Examples:
   $(basename "$0") -f /path/to/file
@@ -45,7 +45,7 @@ if [ "$#" != 0 ]; then
         FILE_TO_WATCH="$1"
         shift
         ;;
-      -d|--watch-directory)
+      -r|--watch-directory)
         DIRECTORY_TO_WATCH="$1"
         shift
         ;;
@@ -84,15 +84,17 @@ fi
 
 # Watch file or directory based on user input
 while true; do
-  $@
+  $@ &
+  PID=$!
+
   if [ -n "$FILE_TO_WATCH" ]; then
     # Watch the specified file without output
-    inotifywait -q -e modify -e move -e create -e delete -e attrib "$FILE_TO_WATCH" &>/dev/null &
+    inotifywait -q -e modify -e move -e create -e delete -e attrib "$FILE_TO_WATCH" &>/dev/null
   elif [ -n "$DIRECTORY_TO_WATCH" ]; then
     # Watch the specified directory without output
-    inotifywait -q -e modify -e move -e create -e delete -e attrib -r "$DIRECTORY_TO_WATCH" &>/dev/null &
+    inotifywait -q -e modify -e move -e create -e delete -e attrib -r "$DIRECTORY_TO_WATCH" &>/dev/null
   fi
 
-  PID=$!
-  wait $PID
+  # the process might have already exited, hence the || true
+  kill $PID || true
 done

@@ -20,11 +20,11 @@ Usage: $(basename "$0") [OPTIONS]
 Options:
   -h, --help              Display this help message and exit.
   -f, --file FILE         Watch a specific file.
-  -r, --watch-directory DIR  Watch a specific directory.
+  -r, --directory DIR     Recursively watch a specific directory.
 
 Examples:
-  $(basename "$0") -f /path/to/file
-  $(basename "$0") -d /path/to/directory
+  $(basename "$0") -f /path/to/file -- echo hello
+  $(basename "$0") -r /path/to/directory -- python main.py
 EOF
 }
 
@@ -84,7 +84,7 @@ fi
 
 # Watch file or directory based on user input
 while true; do
-  $@ &
+  "$@" &
   PID=$!
 
   if [ -n "$FILE_TO_WATCH" ]; then

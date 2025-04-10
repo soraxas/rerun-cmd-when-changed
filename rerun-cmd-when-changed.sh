@@ -15,7 +15,7 @@ trap sigint_handler SIGINT
 # Function to display help message
 usage() {
   cat << EOF
-Usage: $(basename "$0") [OPTIONS]
+Usage: $(basename "$0") [OPTIONS] <COMMAND...>
 
 Options:
   -h, --help              Display this help message and exit.
@@ -24,7 +24,7 @@ Options:
 
 Examples:
   $(basename "$0") -f /path/to/file -- echo hello
-  $(basename "$0") -r /path/to/directory -- python main.py
+  $(basename "$0") -r /path/to/directory python main.py
 EOF
 }
 
@@ -81,6 +81,13 @@ elif [ -z "$DIRECTORY_TO_WATCH" ] && [ -z "$FILE_TO_WATCH" ]; then
   usage
   exit 1
 fi
+
+if [ $# -lt 1 ]; then
+  echo "> Error: No command provided."
+  usage
+  exit 1
+fi
+  
 
 # Watch file or directory based on user input
 while true; do

@@ -2,7 +2,7 @@
 
 # SIGINT handler to gracefully exit
 sigint_handler() {
-  kill $PID
+  kill $PID 2>&1 | pipe_output
   exit
 }
 
@@ -91,6 +91,15 @@ if [ $# -lt 1 ]; then
   usage
   exit 1
 fi
+
+DEPS="inotifywait"
+# Check if required dependencies are installed
+for dep in $DEPS; do
+  if ! command -v "$dep" >/dev/null 2>&1; then
+    echo "> Error: Required dependency '$dep' is not installed." >&2
+    exit 1
+  fi
+done
 
 # Function to handle verbose mode
 pipe_output() {

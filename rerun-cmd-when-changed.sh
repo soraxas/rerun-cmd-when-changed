@@ -20,11 +20,12 @@ Usage: $(basename "$0") [OPTIONS] <COMMAND...>
 Options:
   -h, --help              Display this help message and exit.
   -f, --file FILE         Watch a specific file.
-  -r, --directory DIR     Recursively watch a specific directory.
+  -d, --directory DIR     Recursively watch a specific directory.
+  -v, --verbose           Verbose
 
 Examples:
   $(basename "$0") -f /path/to/file -- echo hello
-  $(basename "$0") -r /path/to/directory python main.py
+  $(basename "$0") -d /path/to/directory python main.py
 EOF
 }
 
@@ -45,9 +46,12 @@ if [ "$#" != 0 ]; then
         FILE_TO_WATCH="$1"
         shift
         ;;
-      -r|--watch-directory)
+      -d|--directory)
         DIRECTORY_TO_WATCH="$1"
         shift
+        ;;
+      -v|--verbose)
+        VERBOSE=true
         ;;
       --*=*)  # Convert '--name=arg' to '--name' 'arg'
         set -- "${opt%%=*}" "${opt#*=}" "$@"
@@ -87,7 +91,15 @@ if [ $# -lt 1 ]; then
   usage
   exit 1
 fi
-  
+
+# Function to handle verbose mode
+pipe_output() {
+  if [ -n "$VERBOSE" ]; then
+    cat # Pipe to stdout
+  else
+    cat >/dev/null # Pipe to /dev/null
+  fi
+}
 
 # Watch file or directory based on user input
 while true; do
@@ -103,5 +115,5 @@ while true; do
   fi
 
   # the process might have already exited, hence the || true
-  kill $PID || true
+  kill $PID 2>&1 | pipe_output || true
 done

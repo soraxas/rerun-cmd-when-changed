@@ -20,8 +20,9 @@ Usage: $(basename "$0") [OPTIONS] <COMMAND...>
 Options:
   -h, --help              Display this help message and exit.
   -f, --file FILE         Watch a specific file.
-  -d, --directory DIR     Recursively watch a specific directory.
+  -d, --directory DIR     Recursively watch a specific directory (default: current directory).
   -v, --verbose           Verbose
+  -r, --recursive         Watch directories recursively (default: false).
 
 Examples:
   $(basename "$0") -f /path/to/file -- echo hello
@@ -49,6 +50,9 @@ if [ "$#" != 0 ]; then
       -d|--directory)
         DIRECTORY_TO_WATCH="$1"
         shift
+        ;;
+      -r|--recursive)
+        RECURSIVE=true
         ;;
       -v|--verbose)
         VERBOSE=true
@@ -81,9 +85,8 @@ if [ -n "$DIRECTORY_TO_WATCH" ] && [ -n "$FILE_TO_WATCH" ]; then
   usage
   exit 1
 elif [ -z "$DIRECTORY_TO_WATCH" ] && [ -z "$FILE_TO_WATCH" ]; then
-  echo "> Error: You must provide either a file or a directory to watch." >&2
-  usage
-  exit 1
+  # default to current directory if neither is specified
+  DIRECTORY_TO_WATCH="."
 fi
 
 if [ $# -lt 1 ]; then
@@ -120,7 +123,7 @@ while true; do
     inotifywait -q -e modify -e move -e create -e delete -e attrib "$FILE_TO_WATCH" &>/dev/null
   elif [ -n "$DIRECTORY_TO_WATCH" ]; then
     # Watch the specified directory without output
-    inotifywait -q -e modify -e move -e create -e delete -e attrib -r "$DIRECTORY_TO_WATCH" &>/dev/null
+    inotifywait -q -e modify -e move -e create -e delete -e attrib $([ "$RECURSIVE" = true ] && echo "-r") "$DIRECTORY_TO_WATCH" &>/dev/null
   fi
 
   # the process might have already exited, hence the || true
